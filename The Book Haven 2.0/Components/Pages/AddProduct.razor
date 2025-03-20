@@ -1,0 +1,112 @@
+﻿@page "/product/new"
+@using TheBookHaven2.ApiService
+@using TheBookHaven2.Models
+@inject ProductApiService ProductApiService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<h3 class="text-center my-4">Add Product</h3>
+
+<EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
+	<DataAnnotationsValidator/>
+	<ValidationSummary class="text-danger mb-3"/>
+
+	<div class="row">
+		<div class="col-md-6 mb-3">
+			<label for="Title" class="form-label">Title</label>
+			<InputText id="Title" class="form-control" @bind-Value="product.Title" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6 mb-3">
+			<label for="Author" class="form-label">Author</label>
+			<InputText id="Author" class="form-control" @bind-Value="product.Author" />
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-6 mb-3">
+			<label for="ISBN" class="form-label">ISBN</label>
+			<InputText id="ISBN" class="form-control" @bind-Value="product.ISBN" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6 mb-3">
+			<label for="PublicationYear" class="form-label">Publication Year</label>
+			<InputNumber id="PublicationYear" class="form-control" @bind-Value="product.PublicationYear" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6 mb-3">
+			<label for="Publisher" class="form-label">Publisher</label>
+			<InputText id="Publisher" class="form-control" @bind-Value="product.Publisher" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6 mb-3">
+			<label for="Description" class="form-label">Description</label>
+			<InputTextArea id="Description" class="form-control" @bind-Value="product.Description" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6 mb-3">
+			<label for="Price" class="form-label">Price</label>
+			<InputNumber id="Price" class="form-control" @bind-Value="product.Price" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6 mb-3">
+			<label for="Category" class="form-label">Category</label>
+			<InputText id="Category" class="form-control" @bind-Value="product.Category" />
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6 mb-3 d-flex">
+			<label for="IsAvailable" class="form-label">In Stock</label>
+			<InputCheckbox id="IsAvailable" class="form-check-input larger-checkbox" @bind-Value="product.IsAvailable" />
+		</div>
+	</div>
+
+	<div class="d-flex">
+		<button type="submit" class="btn btn-primary">Add Product</button>
+		<button type="button" class="btn btn-secondary" @onclick="ResetForm">Reset</button>
+	</div>
+
+</EditForm>
+
+@if (isSuccess)
+{
+	<div class="alert alert-success">
+		The product has been added!
+	</div>
+}
+else if (isError)
+{
+	<div class="alert alert-danger">Something went wrong. Try again.</div>
+}
+
+@code {
+	private Product product = new Product();
+	private bool isSuccess = false;
+	private bool isError = false;
+
+	private async Task HandleValidSubmit()
+	{
+		try
+		{
+			await ProductApiService.CreateProductAsync(product);
+			isSuccess = true;
+			isError = false;
+		}
+		catch (Exception ex)
+		{
+			isSuccess = false;
+			isError = true;
+		}
+	}
+
+	private void ResetForm()
+	{
+		product = new Product();
+	}
+}
