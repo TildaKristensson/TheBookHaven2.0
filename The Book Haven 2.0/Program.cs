@@ -37,6 +37,14 @@ builder.Services.AddHttpClient<ProductApiService>(client =>
 {
     client.BaseAddress = new Uri("https://localhost:7080");
 });
+builder.Services.AddHttpClient<CustomerApiService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7080");
+});
+builder.Services.AddHttpClient<OrderApiService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7080");
+});
 
 
 var app = builder.Build();

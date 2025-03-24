@@ -8,30 +8,13 @@
 @rendermode InteractiveServer
 
 
-<div class="cart-container position-absolute top-0 end-0 p-3">
-	<button class="btn btn-outline-primary position-relative" @onclick="ToggleCart">
-		🛒 Cart
-		<span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
-			@Cart.Count
-		</span>
-	</button>
-	@if (IsCartOpen)
-	{
-		<div class="cart-dropdown bg-white border rounded p-3 shadow">
-			<h5 class="mb-3">Shopping Cart</h5>
-			<ul class="list-unstyled">
-				@foreach (var item in Cart)
-				{
-					<li>@item.Title - @item.Price.ToString("C")</li>
-				}
-			</ul>
-			<div class="border-top pt-2">
-				<strong>Total: @Cart.Sum(item => item.Price).ToString("C")</strong>
-			</div>
-			<button class="brn btn-success w-100 mt-2" @onclick="PlaceOrder">Place Order</button>
-		</div>
+<style>
+	.cart-dropdown {
+	z-index: 1050;
+	position: relative
+
 	}
-</div>
+</style>
 
 <div class="container mt-4">
 	<div class="row mb-4">
@@ -40,15 +23,43 @@
 		</div>
 	</div>
 
+	<div class="cart-container position-absolute top-0 end-0 p-5 mt-5 me-3">
+		<button class="btn btn-outline-primary position-relative" @onclick="ToggleCart">
+			<i class="bi bi-cart"></i> Cart
+			<span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+				@Cart.Count
+			</span>
+		</button>
+		@if (IsCartOpen)
+		{
+			<div class="cart-dropdown bg-white border rounded p-3 shadow">
+				<h5 class="mb-3">Shopping Cart</h5>
+				<ul class="list-unstyled">
+					@foreach (var item in Cart)
+					{
+						<li class="d-flex justify-content-between align-items-center">
+							<span>@item.Title - @item.Price.ToString("C")</span>
+							<button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveFromCart(item)">
+								<i class="bi bi-x-lg"></i>
+							</button>
+						</li>
+					}
+				</ul>
+				<div class="border-top pt-2">
+					<strong>Total: @Cart.Sum(item => item.Price).ToString("C")</strong>
+				</div>
+				<button class="brn btn-success w-100 mt-2" @onclick="PlaceOrder">Place Order</button>
+				<button class="btn btn-dark w-50 mt-2" @onclick="CloseCart">Close</button>
+			</div>
+		}
+	</div>
+
 	<div class="row mb-4 justify-content-center">
 		<div class="col-md-4 mb-2">
-			<input type="text" class="form-control" placeholder="Search by Author" @bind="AuthorName" @bind:event="oninput" @onkeyup="HandleKeyPress" />
+			<input type="text" class="form-control" placeholder="Search by Author" @bind="AuthorName" />
 		</div>
 		<div class="col-md-4 mb-2">
-			<input type="text" class="form-control" placeholder="Search by Title" @bind="SearchTerm" @bind:event="oninput" @onkeyup="HandleKeyPress" />
-		</div>
-		<div class="col-md-4 mb-2">
-			<input type="text" class="form-control" placeholder="Search by ISBN" @bind="ISBN" @bind:event="oninput" />
+			<input type="text" class="form-control" placeholder="Search by Title" @bind="SearchTerm"/>
 		</div>
 		<div class="col-md-3">
 			<button class="btn btn-primary w-100" @onclick="Search">Search</button>
@@ -59,6 +70,8 @@
 			</button>
 		</div>
 	</div>
+
+
 
 	@if (IsLoading)
 	{
@@ -96,7 +109,8 @@
 						</div>
 						<div class="card-footer d-flex justify-content-between">
 							<button class="btn btn-sm btn-outline-primary me-2" @onclick="() => AddToCart(product)">Add to cart</button>
-							<button class="btn btn-sm btn-outline-primary me-2" @onclick="() => OpenEditModal(product)">Delete</button>
+							<button class="btn btn-sm btn-outline-primary me-2" @onclick="() => OpenEditModal(product)">Edit</button>
+							<button class="btn btn-sm btn-outline-primary me-2" @onclick="() => OpenSafetyDeleteModal(product)">Delete</button>
 						</div>
 					</div>
 				</div>
@@ -109,21 +123,74 @@
 	}
 </div>
 
-@if (SelectedProduct != null)
+@if (IsDeleteModalOpen && SelectedProduct != null)
 {
 	<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
 					<h5 class="modal-title">Delete product: @SelectedProduct.Title</h5>
-					<button type="button" class="btn-close" @onclick="CloseEditModal"></button>
+					<button type="button" class="btn-close" @onclick="CloseSafetyDeleteModal"></button>
 				</div>
 				<div class="modal-body">
 					<p>Are you sure you want to delete this product?</p>
 				</div>
 				<div class="modal-footer">
-					<button class="btn btn-secondary" @onclick="CloseEditModal">Cancel</button>
+					<button class="btn btn-secondary" @onclick="CloseSafetyDeleteModal">Cancel</button>
 					<button class="btn btn-danger" @onclick="DeleteProduct">Delete</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@if (IsEditModalOpen && SelectedProduct != null)
+{
+	<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Edit product: @SelectedProduct.Title</h5>
+					<button type="button" class="btn-close" @onclick="CloseEditModal"></button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="SelectedProduct" OnValidSubmit="HandleEditSubmit">
+						<DataAnnotationsValidator />
+						<ValidationSummary />
+
+						<div class="mb-3">
+							<label for="title" class="form-label">Title</label>
+							<InputText id="title" class="form-control" @bind-Value="SelectedProduct.Title" />
+						</div>
+						<div class="mb-3">
+							<label for="author" class="form-label">Author</label>
+							<InputText id="author" class="form-control" @bind-Value="SelectedProduct.Author" />
+						</div>
+						<div class="mb-3">
+							<label for="isbn" class="form-label">ISBN</label>
+							<InputText id="isbn" class="form-control" @bind-Value="SelectedProduct.ISBN" />
+						</div>
+						<div class="mb-3">
+							<label for="category" class="form-label">Category</label>
+							<InputText id="category" class="form-control" @bind-Value="SelectedProduct.Category" />
+						</div>
+						<div class="mb-3">
+							<label for="price" class="form-label">Price</label>
+							<InputNumber id="price" class="form-control" @bind-Value="SelectedProduct.Price" />
+						</div>
+						<div class="mb-3">
+							<label for="description" class="form-label">Description</label>
+							<InputTextArea id="description" class="form-control" @bind-Value="SelectedProduct.Description" />
+						</div>
+						<div class="mb-3 d-flex">
+							<label for="isAvailable" class="form-label">In Stock</label>
+							<InputCheckbox id="IsAvailable" class="form-check-input larger-checkbox" @bind-Value="SelectedProduct.IsAvailable" />
+						</div>
+					</EditForm>
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-secondary" @onclick="CloseEditModal">Cancel</button>
+					<button class="btn btn-primary" @onclick="() => UpdateProduct()">Save changes</button>
 				</div>
 			</div>
 		</div>
@@ -135,13 +202,15 @@
 	private List<Product> Products { get; set; } = new();
 	private List<Product> AllProducts { get; set; }
 	private bool IsLoading { get; set; } = true;
-	private string SearchTerm { get; set; } = "";
-	private string AuthorName { get; set; } = "";
+	private string? SearchTerm { get; set; } 
+	private string? AuthorName { get; set; } 
 	private string ISBN { get; set; } = "";
 	private bool ShowOnlyAvailable { get; set; } = false;
 	private Product? SelectedProduct { get; set; }
 	private List<Product> Cart { get; set; } = new();
 	private bool IsCartOpen { get; set; } = false;
+	private bool IsDeleteModalOpen { get; set; } = false;
+	private bool IsEditModalOpen { get; set; } = false;
 
 
 	protected override async Task OnInitializedAsync()
@@ -167,6 +236,7 @@
 		}
 	}
 
+
 	private async Task Search()
 	{
 		IsLoading = true;
@@ -174,7 +244,8 @@
 		{
 			if (string.IsNullOrWhiteSpace(SearchTerm) && string.IsNullOrWhiteSpace(AuthorName))
 			{
-				Products = AllProducts;
+				Products = await ProductApiService.GetAllProductsAsync();
+
 			}
 			else
 			{
@@ -195,6 +266,8 @@
 			IsLoading = false;
 		}
 	}
+
+
 	private void HandleKeyPress(KeyboardEventArgs e)
 	{
 		if (e.Key == "Enter")
@@ -235,13 +308,15 @@
 		NavigationManager.NavigateTo("/product/new");
 	}
 
-	private void OpenEditModal(Product product)
+	private void OpenSafetyDeleteModal(Product product)
 	{
 		SelectedProduct = product;
+		IsDeleteModalOpen = true;
 	}
 
-	private void CloseEditModal()
+	private void CloseSafetyDeleteModal()
 	{
+		IsDeleteModalOpen = false;
 		SelectedProduct = null;
 	}
 
@@ -251,9 +326,43 @@
 		{
 			await ProductApiService.DeleteProductAsync(SelectedProduct.Id);
 			Products.Remove(SelectedProduct);
-			CloseEditModal();
+			CloseSafetyDeleteModal();
 		}
 
+	}
+
+	private void OpenEditModal(Product product)
+	{
+		SelectedProduct = product;
+		IsEditModalOpen = true;
+	}
+
+	private void CloseEditModal()
+	{
+		IsEditModalOpen = false;
+		SelectedProduct = null;
+	}
+
+	private void HandleEditSubmit()
+	{
+		UpdateProduct();
+	}
+
+	private async Task UpdateProduct()
+	{
+		if (SelectedProduct != null)
+		{
+			try
+			{
+				await ProductApiService.UpdateProductAsync(SelectedProduct.Id, SelectedProduct);
+				await LoadProducts();
+				CloseEditModal();
+			}
+			catch (Exception ex)
+			{
+				Console.Error.WriteLine($"Error updating product: {ex.Message}");
+			}
+		}
 	}
 
 	private void ToggleCart()
@@ -264,6 +373,7 @@
 	private void AddToCart(Product product)
 	{
 		Cart.Add(product);
+		IsCartOpen = true;
 	}
 
 	private async Task PlaceOrder()
@@ -282,7 +392,17 @@
 				OrderDate = DateTime.Now
 			};
 
-			await OrderApiService.CreateOrderAsync(order);
-			Cart.Clear();
+		await OrderApiService.CreateOrderAsync(order);
+		Cart.Clear();
+	}
+
+	private void CloseCart()
+	{
+		IsCartOpen = false;
+	}
+
+	private void RemoveFromCart(Product product)
+	{
+		Cart.Remove(product);
 	}
 }

@@ -1,0 +1,289 @@
+﻿@page "/customers"
+@rendermode InteractiveServer
+@using TheBookHaven2.ApiService
+@using TheBookHaven2.Models
+@using System.ComponentModel.DataAnnotations
+@inject CustomerApiService CustomerApiService
+@inject NavigationManager NavigationManager
+
+<h1>Customer Page</h1>
+
+<div class="container mt-4">
+	<h3 class="mt-lg-5">Customer Registration</h3>
+	<EditForm Model="@customer" OnValidSubmit="HandleValidSubmit">
+		<DataAnnotationsValidator />
+		<ValidationSummary class="text-danger mb-3" />
+
+		<div class="row">
+			<div class="col-md-6 mb-3">
+				<label for="Firstname" class="form-label">Firstname</label>
+				<InputText id="Firstname" class="form-control" @bind-Value="customer.FirstName" />
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 mb-3">
+				<label for="Lastname" class="form-label">Lastname</label>
+				<InputText id="Lastname" class="form-control" @bind-Value="customer.LastName" />
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 mb-3">
+				<label for="Email" class="form-label">Email</label>
+				<InputText id="Email" class="form-control" @bind-Value="customer.Email" />
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 mb-3">
+				<label for="Phonenumber" class="form-label">Phone Number</label>
+				<InputText id="Phonenumber" class="form-control" @bind-Value="customer.PhoneNumber" />
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6 mb-3">
+				<label for="Address" class="form-label">Address</label>
+				<InputText id="Address" class="form-control" @bind-Value="customer.Address" />
+			</div>
+		</div>
+
+		<div class="d-flex">
+			<button type="submit" class="btn btn-primary">Register</button>
+			<button type="button" class="btn btn-secondary" @onclick="ResetForm">Reset</button>
+		</div>
+	</EditForm>
+</div>
+
+<div class="row mb-4 mt-5">
+	<h2 class="mt-lg-5">Search customer</h2>
+	<div class="col-md-4 mb-2">
+		<input type="text" class="form-control" placeholder="Search by Email" @bind="CustomerEmail" />
+	</div>
+	<div class="col-md-3">
+		<button class="btn btn-primary w-100" @onclick="SearchByEmail">Search</button>
+	</div>
+</div>
+
+<div class="container mt-4">
+	<h4 class="mt-lg-5">Customer List</h4>
+
+	@if (isLoading)
+	{
+		<div class="text-center">
+			<div class="spinner-border" role="status">
+				<span class="visually-hidden">Loading...</span>
+			</div>
+		</div>
+	}
+	else if (OurCustomers.Count == 0)
+	{
+		<div class="alert alert-warning">No customers found.</div>
+	}
+	else
+	{
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>First Name</th>
+					<th>Last Name</th>
+					<th>Email</th>
+					<th>Phone Number</th>
+					<th>Address</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var customer in OurCustomers)
+				{
+					<tr>
+						<td>@customer.Id</td>
+						<td>@customer.FirstName</td>
+						<td>@customer.LastName</td>
+						<td>@customer.Email</td>
+						<td>@customer.PhoneNumber</td>
+						<td>@customer.Address</td>
+						<td>
+							<button class="btn btn-primary" @onclick="() => EditCustomer(customer)">Edit</button>
+						</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	}
+</div>
+
+@if (isSuccess)
+{
+	<div class="alert alert-success">
+		You are now registered!
+	</div>
+}
+else if (isError)
+{
+	<div class="alert alert-danger">Something went wrong. Try again.</div>
+}
+
+@if (IsEditModalOpen && SelectedCustomer != null)
+{
+	<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Edit customer: @SelectedCustomer.Id</h5>
+					<button type="button" class="btn-close" @onclick="CloseEditModal"></button>
+				</div>
+				<div class="modal-body">
+					<EditForm Model="SelectedCustomer" OnValidSubmit="HandleEditSubmit">
+						<DataAnnotationsValidator />
+						<ValidationSummary />
+
+						<div class="mb-3">
+							<label for="Firstname" class="form-label">Firstname</label>
+							<InputText id="Firstname" class="form-control" @bind-Value="SelectedCustomer.FirstName" />
+						</div>
+						<div class="mb-3">
+							<label for="Lastname" class="form-label">Lastname</label>
+							<InputText id="Lastname" class="form-control" @bind-Value="SelectedCustomer.LastName" />
+						</div>
+						<div class="mb-3">
+							<label for="Email" class="form-label">Email</label>
+							<InputText id="Email" class="form-control" @bind-Value="SelectedCustomer.Email" />
+						</div>
+						<div class="mb-3">
+							<label for="Phonenumber" class="form-label">Phone number</label>
+							<InputText id="Phonenumber" class="form-control" @bind-Value="SelectedCustomer.PhoneNumber" />
+						</div>
+						<div class="mb-3">
+							<label for="Address" class="form-label">Address</label>
+							<InputText id="Address" class="form-control" @bind-Value="SelectedCustomer.Address" />
+						</div>
+					</EditForm>
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-secondary" @onclick="CloseEditModal">Cancel</button>
+					<button class="btn btn-primary" @onclick="() => UpdateCustomer()">Save changes</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+
+@code {
+	private Customer customer = new Customer();
+	private List<Customer> OurCustomers { get; set; } = new();
+	private bool isSuccess = false;
+	private bool isError = false;
+	private bool isLoading = false;
+	private bool IsEditModalOpen { get; set; } = false;
+	private Customer? SelectedCustomer { get; set; }
+	private string? CustomerEmail { get; set; }
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadCustomers();
+	}
+	private async Task LoadCustomers()
+	{
+		isLoading = true;
+
+		try
+		{
+			OurCustomers = await CustomerApiService.GetAllCustomersAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.Error.WriteLine($"Error loading customers: {ex.Message}");
+		}
+		finally
+		{
+			isLoading = false;
+		}
+	}
+
+	private async Task SearchByEmail()
+	{
+		isLoading = true;
+		try
+		{
+			if (string.IsNullOrWhiteSpace(CustomerEmail))
+			{
+				OurCustomers = await CustomerApiService.GetAllCustomersAsync();
+
+			}
+			else
+			{
+				var customer = await CustomerApiService.GetCustomerByEmailAsync(CustomerEmail);
+				OurCustomers = customer != null ? new List<Customer> { customer } : new List<Customer>();
+			}
+
+		}
+		catch (Exception ex)
+		{
+			Console.Error.WriteLine($"Error searching customer: {ex.Message}");
+		}
+		finally
+		{
+			isLoading = false;
+		}
+	}
+
+	private async Task HandleValidSubmit()
+	{
+		try
+		{
+			await CustomerApiService.CreateCustomerAsync(customer);
+			isSuccess = true;
+			isError = false;
+			ResetForm();
+			await LoadCustomers();
+		}
+		catch (Exception ex)
+		{
+			isSuccess = false;
+			isError = true;
+		}
+	}
+
+	private void ResetForm()
+	{
+		customer = new Customer();
+	}
+
+	private void EditCustomer(Customer customer)
+	{
+		SelectedCustomer = customer;
+		IsEditModalOpen = true;
+	}
+
+	private void CloseEditModal()
+	{
+		IsEditModalOpen = false;
+		SelectedCustomer = null;
+	}
+
+	private void HandleEditSubmit()
+	{
+		UpdateCustomer();
+	}
+
+
+	private async Task UpdateCustomer()
+	{
+		if (SelectedCustomer != null)
+		{
+			try
+			{
+				await CustomerApiService.UpdateCustomerAsync(SelectedCustomer.Id, SelectedCustomer);
+				await LoadCustomers();
+				CloseEditModal();
+			}
+			catch (Exception ex)
+			{
+				Console.Error.WriteLine($"Error updating customer information: {ex.Message}");
+			}
+		}
+	}
+}
+
+
+
