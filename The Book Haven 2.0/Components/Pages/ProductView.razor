@@ -1,9 +1,12 @@
 ﻿
 @page "/products"
+@using System.Text.Json
 @using TheBookHaven2.ApiService
+@using TheBookHaven2.DTO
 @using TheBookHaven2.Models
 @inject ProductApiService ProductApiService
 @inject OrderApiService OrderApiService
+@inject CustomerApiService CustomerApiService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -48,7 +51,24 @@
 				<div class="border-top pt-2">
 					<strong>Total: @Cart.Sum(item => item.Price).ToString("C")</strong>
 				</div>
-				<button class="brn btn-success w-100 mt-2" @onclick="PlaceOrder">Place Order</button>
+
+				<div class="mt-3">
+					<label for="customerSelect">Select Customer</label>
+					<select id="customerSelect" class="form-select" @bind="SelectedCustomerId">
+						<option value="">Select customer</option>
+						@foreach (var customer in Customers)
+						{
+							<option value="@customer.Id">@($"{customer.FirstName} {customer.LastName}")</option>
+						}
+					</select>
+				</div>
+
+				@if (IsNoCustomerSelected)
+				{
+					<div class="alert alert-warning mt-2">Please select a customer before placing order.</div>
+				}
+
+				<button class="btn btn-success w-100 mt-2" @onclick="PlaceOrder">Place Order</button>
 				<button class="btn btn-dark w-50 mt-2" @onclick="CloseCart">Close</button>
 			</div>
 		}
@@ -212,6 +232,12 @@
 	private bool IsDeleteModalOpen { get; set; } = false;
 	private bool IsEditModalOpen { get; set; } = false;
 
+	private Customer? SelectedCustomer => Customers.FirstOrDefault(c => c.Id == SelectedCustomerId);
+	private List<Customer> Customers { get; set; } = new();
+
+	private int SelectedCustomerId { get; set; }
+	private bool IsNoCustomerSelected { get; set; } = false;
+
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -365,36 +391,21 @@
 		}
 	}
 
-	private void ToggleCart()
+	private async Task ToggleCart()
 	{
 		IsCartOpen = !IsCartOpen;
+
+		if (IsCartOpen)
+		{
+			Customers = await CustomerApiService.GetAllCustomersAsync();
+		}
 	}
 
 	private void AddToCart(Product product)
 	{
 		Cart.Add(product);
-		IsCartOpen = true;
 	}
 
-	private async Task PlaceOrder()
-	{
-		int placeHolderCustomerId = 1;
-
-		var order = new Order
-			{
-				CustomerId = placeHolderCustomerId,
-				OrderDetails = Cart.Select(p => new OrderDetails
-				{
-					ProductId = p.Id,
-					Quantity = 1,
-					TotalPrice = p.Price
-				}).ToList(),
-				OrderDate = DateTime.Now
-			};
-
-		await OrderApiService.CreateOrderAsync(order);
-		Cart.Clear();
-	}
 
 	private void CloseCart()
 	{
@@ -405,4 +416,68 @@
 	{
 		Cart.Remove(product);
 	}
+
+	private async Task PlaceOrder()
+	{
+		try
+		{
+			if (SelectedCustomer != null)
+			{
+				var newOrder = new CreateOrderDTO
+					{
+						CustomerId = SelectedCustomer.Id,
+						OrderDetails = Cart.GroupBy(product => product.Id)
+							.Select(group => new OrderDetailsDTO
+							{
+								ProductId = group.Key,
+								Quantity = group.Count()
+							}).ToList(),
+						OrderDate = DateTime.Now,
+						TotalPrice = Cart.Sum(item => item.Price)
+					};
+
+				// var json = JsonSerializer.Serialize(newOrder, new JsonSerializerOptions { WriteIndented = true });
+				// Console.WriteLine(json);
+				await OrderApiService.CreateOrderAsync(newOrder);
+				Cart.Clear();
+			}
+			else
+			{
+				IsNoCustomerSelected = true;
+			}
+		}
+		catch (Exception ex)
+		{
+			// Logga felet
+			Console.WriteLine($"Error: {ex.Message}\n{ex.StackTrace}");
+		}
+	}
+
+	// private async Task PlaceOrder()
+	// {
+	// 	if (SelectedCustomer != null)
+	// 	{
+	// 		var newOrder = new Order
+	// 			{
+	// 				CustomerId = SelectedCustomer.Id,
+	// 				OrderDetails = Cart.GroupBy(product => product.Id)
+	// 					.Select(group => new OrderDetails
+	// 					{
+	// 						ProductId = group.Key,
+	// 						Quantity = group.Count()
+	// 					}).ToList(),
+	// 				OrderDate = DateTime.Now,
+	// 				TotalPrice = Cart.Sum(item => item.Price)
+	// 			};
+
+	// 		await OrderApiService.CreateOrderAsync(newOrder);
+	// 		Cart.Clear();
+	// 	}
+	// 	else
+	// 	{
+	// 		IsNoCustomerSelected = true;
+	// 	}
+	// }
 }
+
+		

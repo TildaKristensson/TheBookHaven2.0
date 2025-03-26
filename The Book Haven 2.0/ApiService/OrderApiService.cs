@@ -1,4 +1,5 @@
-﻿using TheBookHaven2.Models;
+﻿using TheBookHaven2.DTO;
+using TheBookHaven2.Models;
 
 namespace TheBookHaven2.ApiService
 {
@@ -35,9 +36,9 @@ namespace TheBookHaven2.ApiService
             return await response.Content.ReadFromJsonAsync<List<Order>>();
         }
 
-        public async Task CreateOrderAsync(Order order)
+        public async Task CreateOrderAsync(CreateOrderDTO createOrderDto)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/order", order);
+            var response = await _httpClient.PostAsJsonAsync("api/order", createOrderDto);
 
             response.EnsureSuccessStatusCode();
         }

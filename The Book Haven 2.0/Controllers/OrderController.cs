@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Client;
+using TheBookHaven2.DTO;
 using TheBookHaven2.Interface;
 using TheBookHaven2.Models;
 using TheBookHaven2.Services;
@@ -33,10 +34,11 @@ namespace TheBookHaven2.Controllers
             => Ok(await _service.GetOrdersByCustomerIdAsync(customerId));
 
         [HttpPost]
-        public async Task<IActionResult> Create(Order order)
+        public async Task<IActionResult> Create(CreateOrderDTO orderDto)
         {
-            await _service.AddOrderAsync(order);
-            return CreatedAtAction(nameof(GetById), new { id = order.Id }, order);
+
+            await _service.AddOrderAsync(orderDto);
+            return CreatedAtAction(nameof(GetById), new { id = orderDto.Id }, orderDto);
         }
 
         [HttpPut("{id}")]

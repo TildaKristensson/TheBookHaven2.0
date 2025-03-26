@@ -1,4 +1,5 @@
-﻿using TheBookHaven2.Models;
+﻿using TheBookHaven2.DTO;
+using TheBookHaven2.Models;
 
 namespace TheBookHaven2.Interface
 {
@@ -7,7 +8,7 @@ namespace TheBookHaven2.Interface
         Task<IEnumerable<Order>> GetAllOrdersAsync();
         Task<Order?> GetOrderByIdAsync(int orderId);
         Task<IEnumerable<Order>> GetOrdersByCustomerIdAsync(int customerId);
-        Task AddOrderAsync(Order order);
+        Task AddOrderAsync(CreateOrderDTO createOrderDto);
         Task<bool> UpdateOrderAsync(int orderId, Order order);
         Task DeleteOrderAsync(int orderId);
     }

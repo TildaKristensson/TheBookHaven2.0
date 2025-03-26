@@ -26,12 +26,17 @@ namespace TheBookHaven2.Data
                 .WithMany()
                 .HasForeignKey(od => od.ProductId);
 
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Customer)
+                .WithMany()
+                .HasForeignKey(o => o.CustomerId);
+
             modelBuilder.Entity<Product>()
                 .Property(p => p.Price)
                 .HasColumnType("decimal(18,2)");
 
-            modelBuilder.Entity<OrderDetails>()
-                .Property(od => od.TotalPrice)
+            modelBuilder.Entity<Order>()
+                .Property(o => o.TotalPrice)
                 .HasPrecision(18, 2);
         }
     }
