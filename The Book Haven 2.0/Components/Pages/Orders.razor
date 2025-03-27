@@ -1,0 +1,36 @@
+﻿@page "/orders"
+@rendermode InteractiveServer
+@using TheBookHaven2.ApiService
+@using TheBookHaven2.Models
+@using TheBookHaven2.DTO
+@using System.ComponentModel.DataAnnotations
+@inject OrderApiService OrderApiService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Orders</PageTitle>
+
+<div class="container mt-4">
+	<div class="row mb-4">
+		<div class="col d-flex justify-content-center">
+			<div class="p-4"
+			style="background: linear-gradient(180deg, #f8a89d 0%, #f4b8a2 70%); border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); width: 1000px; display: flex; flex-direction: column; align-items: center;">
+				<h1 class="display-5 fw-bold text-white" style="font-family: 'Roboto', sans-serif;">Order collection</h1>
+				<p class="lead text-white" style="font-family: 'Poppins', sans-serif;">See what orders have previously been placed!</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+@code {
+	private List<CustomerOrdersDTO> customerOrders;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await GetCustomerOrders();
+	}
+
+	public async Task GetCustomerOrders()
+	{
+		customerOrders = await OrderApiService.GetCustomerOrdersAsync();
+	}
+}

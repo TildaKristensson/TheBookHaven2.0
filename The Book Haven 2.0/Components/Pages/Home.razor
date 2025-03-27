@@ -2,6 +2,67 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<style>
+    .text-purple {
+        color: #6f42c1; /* Lila nyans */
+    }
 
-Welcome to your new app.
+    .btn-outline-purple {
+        border-color: #6f42c1;
+        color: #6f42c1;
+    }
+
+        .btn-outline-purple:hover {
+            background-color: #6f42c1;
+            color: white;
+        }
+</style>
+
+<div class="container-fluid" style="background: linear-gradient(180deg, #f8a89d 0%, #f4b8a2 70%); padding: 40px 0; margin-top: 50px; width: 1350px;">
+    <div class="d-flex justify-content-center align-items-center py-5">
+        <div class="text-white text-center px-2 py-3"
+             style="border: 2px solid #ffffff; border-radius: 20px; box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1); max-width: 100%; width: 85%; ">
+            <h1 class="display-2 fw-bold" style="font-family: 'Roboto', sans-serif;">Welcome to <br />The Book Haven 2.0!</h1>
+            <p class="lead" style="font-family: 'Poppins', sans-serif;">Explore and enjoy our content. Navigate through the menu to find what you're looking for.</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="row text-center">
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="mb-3">
+                    <i class="bi bi-box-fill text-purple" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="fw-bold">Orders</h5>
+                <p>Track customer orders effectively.</p>
+                <a href="/orders" class="btn btn-outline-purple">View Orders</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="mb-3">
+                    <i class="bi bi-book-fill text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="fw-bold">Products</h5>
+                <p>Discover a wide variety of books available in our catalog. You can also add new books to our stock, edit the existing ones and, of course, place an order!</p>
+                <a href="/products" class="btn btn-outline-danger">Explore Products</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="mb-3">
+                    <i class="bi bi-person-fill text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <h5 class="fw-bold">Customers</h5>
+                <p>Manage, register and view customer details easily.</p>
+                <a href="/customers" class="btn btn-outline-warning">View Customers</a>
+            </div>
+        </div>
+
+    </div>
+</div>

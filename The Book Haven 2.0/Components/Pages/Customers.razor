@@ -6,8 +6,18 @@
 @inject CustomerApiService CustomerApiService
 @inject NavigationManager NavigationManager
 
-<h1>Customer Page</h1>
-
+<PageTitle>Customers</PageTitle>
+<div class="container mt-4">
+	<div class="row mb-4">
+		<div class="col d-flex justify-content-center">
+			<div class="p-4"
+				 style="background: linear-gradient(180deg, #f8a89d 0%, #f4b8a2 70%); border-radius: 10px; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); width: 1000px; display: flex; flex-direction: column; align-items: center;">
+				<h1 class="display-5 fw-bold text-white" style="font-family: 'Roboto', sans-serif;">Customer Page</h1>
+				<p class="lead text-white" style="font-family: 'Poppins', sans-serif;">Register, edit or search!</p>
+			</div>
+		</div>
+	</div>
+</div>
 <div class="container mt-4">
 	<h3 class="mt-lg-5">Customer Registration</h3>
 	<EditForm Model="@customer" OnValidSubmit="HandleValidSubmit">
@@ -52,7 +62,7 @@
 	</EditForm>
 </div>
 
-<div class="row mb-4 mt-5">
+<div class="row mb-4 mt-5 ms-5">
 	<h2 class="mt-lg-5">Search customer</h2>
 	<div class="col-md-4 mb-2">
 		<input type="text" class="form-control" placeholder="Search by Email" @bind="CustomerEmail" />

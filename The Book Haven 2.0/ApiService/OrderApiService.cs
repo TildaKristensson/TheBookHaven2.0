@@ -36,6 +36,14 @@ namespace TheBookHaven2.ApiService
             return await response.Content.ReadFromJsonAsync<List<Order>>();
         }
 
+        public async Task<List<CustomerOrdersDTO>> GetCustomerOrdersAsync()
+        {
+            var response = await _httpClient.GetAsync("api/order/customer-orders");
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<List<CustomerOrdersDTO>>();
+        }
+
         public async Task CreateOrderAsync(CreateOrderDTO createOrderDto)
         {
             var response = await _httpClient.PostAsJsonAsync("api/order", createOrderDto);

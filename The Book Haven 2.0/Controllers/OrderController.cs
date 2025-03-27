@@ -13,10 +13,11 @@ namespace TheBookHaven2.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _service;
-
-        public OrderController(IOrderService service)
+        private readonly ICustomerOrderService _customerOrderService;
+        public OrderController(IOrderService service, ICustomerOrderService customerOrderService)
         {
             _service = service;
+            _customerOrderService = customerOrderService;
         }
 
         [HttpGet]
@@ -32,6 +33,13 @@ namespace TheBookHaven2.Controllers
         [HttpGet("customer/{customerId}")]
         public async Task<IActionResult> GetByCustomerId(int customerId)
             => Ok(await _service.GetOrdersByCustomerIdAsync(customerId));
+
+        [HttpGet("customer-orders")]
+        public async Task<IActionResult> GetCustomerOrders()
+        {
+            var customerOrders = await _customerOrderService.GetCustomerOrdersAsync();
+            return Ok(customerOrders);
+        }
 
         [HttpPost]
         public async Task<IActionResult> Create(CreateOrderDTO orderDto)
