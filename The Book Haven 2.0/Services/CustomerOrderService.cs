@@ -27,7 +27,15 @@ namespace TheBookHaven2.Services
                     CustomerId = customer.Id,
                     FirstName = customer.FirstName,
                     LastName = customer.LastName,
-                    Orders = orders.ToList()
+                    Orders = orders.Select(o => new OrderDTO
+                    {
+                        OrderId = o.Id,
+                        Products = o.OrderDetails.Select(od => new ProductDTO
+                        {
+                            Title = od.Product?.Title ?? "Unknown Product",
+                            Quantity = od.Quantity
+                        }).ToList()
+                    }).ToList()
                 });
             }
             return customerOrders;
