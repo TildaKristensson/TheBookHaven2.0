@@ -14,19 +14,16 @@ namespace TheBookHaven2.Services
         }
         public async Task AddProductAsync(Product product)
         {
-            // valideringslogik?
             await _repository.AddAsync(product);
         }
 
         public async Task DeleteProductAsync(int id)
         {
-            // valideringslogik?
             await _repository.DeleteAsync(id);
         }
 
         public async Task UpdateProductAsync(Product product)
         {
-            // valideringslogik?
             await _repository.UpdateAsync(product);
         }
 
